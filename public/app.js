@@ -143,5 +143,10 @@ async function openExam(id) {
   $('#modal').showModal();
 }
 
-api('/api/health').then((h) => ($('#instance').textContent = `instância: ${h.instance}`)).catch(() => {});
+const showInstance = () => api('/api/health').then((h) => ($('#instance').textContent = `instância: ${h.instance}`)).catch(() => {});
+showInstance(); setInterval(showInstance, 5000);
+$('#btn-stress').onclick = async () => {
+  try { const r = await api('/api/stress?s=180'); toast(r.alreadyRunning ? `Carga já ativa em ${r.instance}` : `CPU saturada em ${r.instance} por ${r.seconds}s`); }
+  catch (e) { toast(e.message, true); }
+};
 render();

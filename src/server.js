@@ -19,11 +19,17 @@ const send = (res, { data, hit }) => res.set('X-Cache', hit ? 'HIT' : 'MISS').js
 app.get('/api/health', (req, res) => res.json({ ok: true, instance: os.hostname(), redis: cache.status() }));
 
 // Gera carga de CPU para disparar o Auto Scaling (Parte 2).
+// Usa 1 worker thread por vCPU: satura a CPU sem bloquear o event loop (health check do ALB segue respondendo).
+const { Worker } = require('worker_threads');
+let stressUntil = 0;
 app.get('/api/stress', (req, res) => {
-  const secs = Math.min(Number(req.query.s) || 30, 300);
-  const end = Date.now() + secs * 1000;
-  while (Date.now() < end) crypto.pbkdf2Sync('x', 'y', 1000, 64, 'sha512');
-  res.json({ instance: os.hostname(), stressed: secs });
+  const secs = Math.min(Number(req.query.s) || 180, 600);
+  if (Date.now() < stressUntil) return res.json({ instance: os.hostname(), alreadyRunning: true, until: new Date(stressUntil) });
+  stressUntil = Date.now() + secs * 1000;
+  for (let i = 0; i < os.cpus().length; i++) {
+    new Worker(`const end=Date.now()+${secs * 1000};const c=require('crypto');while(Date.now()<end)c.pbkdf2Sync('x','y',1000,64,'sha512');`, { eval: true });
+  }
+  res.json({ instance: os.hostname(), threads: os.cpus().length, seconds: secs, until: new Date(stressUntil) });
 });
 
 // ---------- Dashboard (cacheado) ----------
