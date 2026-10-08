@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedCloud — Exames e Laudos</title>
+  <meta name="description" content="Sistema clínico de exames e laudos médicos na AWS." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="logo">✚</span> MedCloud</div>
+    <nav>
+      <button class="nav active" data-view="dashboard" id="nav-dashboard">◎ Painel</button>
+      <button class="nav" data-view="exames" id="nav-exames">▣ Exames</button>
+      <button class="nav" data-view="pacientes" id="nav-pacientes">☺ Pacientes</button>
+      <button class="nav" data-view="medicos" id="nav-medicos">⚕ Médicos</button>
+      <button class="nav" data-view="auditoria" id="nav-auditoria">≡ Auditoria</button>
+    </nav>
+    <div class="instance" id="instance">instância: …</div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <h1 id="title">Painel</h1>
+      <span class="badge" id="cache-badge">cache: —</span>
+    </header>
+
+    <!-- Painel -->
+    <section class="view active" id="view-dashboard">
+      <div class="stats" id="stats"></div>
+      <div class="card">
+        <h2>Exames recentes</h2>
+        <div class="grid" id="recent"></div>
+      </div>
+    </section>
+
+    <!-- Exames -->
+    <section class="view" id="view-exames">
+      <form class="card form" id="form-exame">
+        <h2>Novo exame</h2>
+        <div class="row">
+          <label>Paciente<select name="paciente_id" id="exame-paciente" required></select></label>
+          <label>Médico solicitante<select name="medico_id" id="exame-medico"></select></label>
+          <label>Tipo<select name="tipo" id="exame-tipo" required>
+            <option>Raio-X</option><option>Tomografia</option><option>Ressonância</option>
+            <option>Ultrassom</option><option>Mamografia</option><option>Dermatoscopia</option>
+          </select></label>
+        </div>
+        <label>Descrição<input name="descricao" id="exame-descricao" placeholder="Ex.: Tórax PA e perfil" /></label>
+        <label class="drop" id="drop">
+          <input type="file" name="arquivo" id="exame-arquivo" accept="image/*" required />
+          <span id="drop-text">Arraste a imagem do exame ou clique para selecionar</span>
+        </label>
+        <button class="btn" id="btn-enviar-exame">Enviar para processamento</button>
+      </form>
+      <div class="card">
+        <h2>Todos os exames</h2>
+        <div class="grid" id="exames"></div>
+      </div>
+    </section>
+
+    <!-- Pacientes -->
+    <section class="view" id="view-pacientes">
+      <form class="card form" id="form-paciente">
+        <h2 id="paciente-form-title">Novo paciente</h2>
+        <input type="hidden" name="id" />
+        <div class="row">
+          <label>Nome<input name="nome" id="paciente-nome" required /></label>
+          <label>CPF<input name="cpf" id="paciente-cpf" required /></label>
+          <label>Nascimento<input type="date" name="nascimento" id="paciente-nascimento" /></label>
+          <label>Telefone<input name="telefone" id="paciente-telefone" /></label>
+        </div>
+        <button class="btn" id="btn-salvar-paciente">Salvar</button>
+      </form>
+      <div class="card"><table id="tbl-pacientes"></table></div>
+    </section>
+
+    <!-- Médicos -->
+    <section class="view" id="view-medicos">
+      <form class="card form" id="form-medico">
+        <h2 id="medico-form-title">Novo médico</h2>
+        <input type="hidden" name="id" />
+        <div class="row">
+          <label>Nome<input name="nome" id="medico-nome" required /></label>
+          <label>CRM<input name="crm" id="medico-crm" required /></label>
+          <label>Especialidade<input name="especialidade" id="medico-especialidade" /></label>
+        </div>
+        <button class="btn" id="btn-salvar-medico">Salvar</button>
+      </form>
+      <div class="card"><table id="tbl-medicos"></table></div>
+    </section>
+
+    <!-- Auditoria -->
+    <section class="view" id="view-auditoria">
+      <div class="card">
+        <h2>Log de auditoria <small>(DynamoDB)</small></h2>
+        <div id="audit"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal do exame -->
+  <dialog id="modal">
+    <form method="dialog" class="modal-body" id="modal-body"></form>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
