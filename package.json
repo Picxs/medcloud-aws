@@ -8,11 +8,16 @@
     "worker": "node src/worker.js",
     "migrate": "node src/migrate.js",
     "infra": "node infra/provision.js",
-    "infra:status": "node infra/status.js"
+    "infra:status": "node infra/status.js",
+    "infra:scale": "node infra/scale.js",
+    "infra:watch": "node infra/watch.js"
   },
   "dependencies": {
+    "@aws-sdk/client-auto-scaling": "^3.1147.0",
+    "@aws-sdk/client-cloudwatch": "^3.1147.0",
     "@aws-sdk/client-dynamodb": "^3.600.0",
     "@aws-sdk/client-ec2": "^3.600.0",
+    "@aws-sdk/client-elastic-load-balancing-v2": "^3.1147.0",
     "@aws-sdk/client-elasticache": "^3.600.0",
     "@aws-sdk/client-rds": "^3.600.0",
     "@aws-sdk/client-s3": "^3.600.0",
