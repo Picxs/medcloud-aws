@@ -7,10 +7,10 @@
     "start": "node src/server.js",
     "worker": "node src/worker.js",
     "migrate": "node src/migrate.js",
-    "infra": "node infra/provision.js",
-    "infra:status": "node infra/status.js",
-    "infra:scale": "node infra/scale.js",
-    "infra:watch": "node infra/watch.js"
+    "infra": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/provision.js",
+    "infra:status": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/status.js",
+    "infra:scale": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/scale.js",
+    "infra:watch": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/watch.js"
   },
   "dependencies": {
     "@aws-sdk/client-auto-scaling": "^3.1147.0",

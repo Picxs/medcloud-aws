@@ -13,9 +13,11 @@ async function tick() {
   const g = (await as.send(new AS.DescribeAutoScalingGroupsCommand({ AutoScalingGroupNames: [s.asgName] }))).AutoScalingGroups[0];
   const th = (await elb.send(new ELB.DescribeTargetHealthCommand({ TargetGroupArn: s.tgArn }))).TargetHealthDescriptions;
   const al = (await cw.send(new CW.DescribeAlarmsCommand({ AlarmNamePrefix: 'medcloud-cpu' }))).MetricAlarms;
-  const cpu = (await cw.send(new CW.GetMetricStatisticsCommand({ Namespace: 'AWS/EC2', MetricName: 'CPUUtilization',
+  const cpu = (await cw.send(new CW.GetMetricStatisticsCommand({
+    Namespace: 'AWS/EC2', MetricName: 'CPUUtilization',
     Dimensions: [{ Name: 'AutoScalingGroupName', Value: s.asgName }], StartTime: new Date(Date.now() - 5 * 60e3), EndTime: new Date(),
-    Period: 60, Statistics: ['Average'] }))).Datapoints.sort((a, b) => a.Timestamp - b.Timestamp).map((d) => d.Average.toFixed(0) + '%');
+    Period: 60, Statistics: ['Average']
+  }))).Datapoints.sort((a, b) => a.Timestamp - b.Timestamp).map((d) => d.Average.toFixed(0) + '%');
   const act = (await as.send(new AS.DescribeScalingActivitiesCommand({ AutoScalingGroupName: s.asgName, MaxRecords: 3 }))).Activities;
   console.clear();
   console.log(new Date().toLocaleTimeString('pt-BR'), `| ASG desejado=${g.DesiredCapacity} (min ${g.MinSize}, max ${g.MaxSize})`);
@@ -27,4 +29,4 @@ async function tick() {
   act.forEach((a) => console.log(` [${a.StatusCode}] ${a.Description}`));
   console.log(`\nALB: http://${s.albDns}`);
 }
-(async () => { for (;;) { await tick().catch((e) => console.error(e.message)); await new Promise((r) => setTimeout(r, 10000)); } })();
+(async () => { for (; ;) { await tick().catch((e) => console.error(e.message)); await new Promise((r) => setTimeout(r, 10000)); } })();
