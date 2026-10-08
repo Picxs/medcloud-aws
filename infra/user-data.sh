@@ -1,12 +1,12 @@
 #!/bin/bash
 # User Data da EC2 (Amazon Linux 2023). Usado na instância da Parte 1 e no Launch Template da Parte 2.
-# Antes de usar: substitua REPO_URL e cole o conteúdo do seu .env entre os marcadores ENV.
+# Antes de usar: cole o conteúdo do seu .env entre os marcadores ENV.
 set -eux
 dnf install -y nodejs20 git
 alternatives --set node /usr/bin/node-20 2>/dev/null || ln -sf /usr/bin/node-20 /usr/bin/node
 ln -sf /usr/bin/npm-20 /usr/bin/npm 2>/dev/null || true
 
-git clone REPO_URL /opt/medcloud
+git clone https://github.com/Picxs/medcloud-aws.git /opt/medcloud
 cd /opt/medcloud
 cat > .env <<'ENV'
 # >>> cole aqui o conteúdo do .env gerado por `npm run infra:status` <<<

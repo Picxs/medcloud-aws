@@ -3,3 +3,4 @@ node_modules/
 .aws/
 *.pem
 infra/state.json
+infra/user-data.local.sh
