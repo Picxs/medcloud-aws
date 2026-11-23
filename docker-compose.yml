@@ -1,0 +1,182 @@
+services:
+  # 1. Banco de Dados Relacional gerenciado pela equipe (PostgreSQL)
+  postgres:
+    image: postgres:16-alpine
+    container_name: medcloud-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-medadmin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-medcloud123}
+      POSTGRES_DB: ${DB_NAME:-medcloud}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-medadmin} -d ${DB_NAME:-medcloud}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - medcloud-net
+
+  # 2. Serviço de Armazenamento de Arquivos compatível com S3 (MinIO)
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    container_name: medcloud-minio
+    restart: unless-stopped
+    user: "0:0"
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    ports:
+      - "9000:9000" # API S3
+      - "9001:9001" # Console Web do MinIO
+    volumes:
+      - miniodata:/data
+    networks:
+      - medcloud-net
+
+  # 3. Serviço de Fila de Mensagens substituindo SNS/SQS (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: medcloud-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-medadmin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-medcloud123}
+    ports:
+      - "5672:5672"   # Protocolo AMQP
+      - "15672:15672" # Painel de Gerenciamento Web
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - medcloud-net
+
+  # 4. Camada de Cache em Memória (Redis)
+  redis:
+    image: redis:7-alpine
+    container_name: medcloud-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - medcloud-net
+
+  # 5. Banco NoSQL AWS DynamoDB Local (para execução sem custos/budget AWS; desative DYNAMO_ENDPOINT no .env para usar AWS Cloud)
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    container_name: medcloud-dynamodb
+    restart: unless-stopped
+    command: "-jar DynamoDBLocal.jar -sharedDb"
+    ports:
+      - "8000:8000"
+    networks:
+      - medcloud-net
+
+  # 6. Backend da Aplicação (API REST Express)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: medcloud-backend:latest
+    container_name: medcloud-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_SSL: "false"
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-medadmin}:${RABBITMQ_PASS:-medcloud123}@rabbitmq:5672
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./.aws:/root/.aws:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      dynamodb:
+        condition: service_started
+    networks:
+      - medcloud-net
+
+  # 7. Worker Assíncrono (Consumidor RabbitMQ + Processamento de Imagens Sharp)
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    image: medcloud-worker:latest
+    container_name: medcloud-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_SSL: "false"
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-medadmin}:${RABBITMQ_PASS:-medcloud123}@rabbitmq:5672
+    volumes:
+      - ./.aws:/root/.aws:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      dynamodb:
+        condition: service_started
+    networks:
+      - medcloud-net
+
+  # 8. Frontend da Aplicação (Nginx + Proxy Reverso)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: medcloud-frontend:latest
+    container_name: medcloud-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - medcloud-net
+
+networks:
+  medcloud-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  miniodata:
+  rabbitmqdata:
+

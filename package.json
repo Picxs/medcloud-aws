@@ -1,16 +1,22 @@
 {
   "name": "medcloud-laudos",
-  "version": "1.0.0",
-  "description": "Sistema clínico de exames e laudos médicos na AWS (EC2, RDS, S3, ElastiCache, DynamoDB, SNS/SQS, ALB, ASG)",
+  "version": "2.0.0",
+  "description": "Sistema clínico de exames e laudos médicos com Docker, Docker Compose, PostgreSQL, MinIO, RabbitMQ, Redis, DynamoDB e Kubernetes",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "worker": "node src/worker.js",
     "migrate": "node src/migrate.js",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "k8s:apply": "kubectl apply -f k8s/",
+    "k8s:delete": "kubectl delete -f k8s/",
     "infra": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/provision.js",
     "infra:status": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/status.js",
     "infra:scale": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/scale.js",
-    "infra:watch": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/watch.js"
+    "infra:watch": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/watch.js",
+    "infra:destroy": "AWS_SHARED_CREDENTIALS_FILE=.aws/credentials AWS_CONFIG_FILE=.aws/config node infra/destroy.js"
   },
   "dependencies": {
     "@aws-sdk/client-auto-scaling": "^3.1147.0",
@@ -25,6 +31,7 @@
     "@aws-sdk/client-sqs": "^3.600.0",
     "@aws-sdk/lib-dynamodb": "^3.600.0",
     "@aws-sdk/s3-request-presigner": "^3.600.0",
+    "amqplib": "^2.4.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "ioredis": "^5.4.1",

@@ -1,0 +1,21 @@
+# [TRABALHO 2 - DOCKERFILE BACKEND]
+# Imagem do servidor de API REST (Express + PostgreSQL + MinIO + RabbitMQ + DynamoDB + Redis)
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instala dependências de produção
+COPY package*.json ./
+RUN npm install --omit=dev
+
+# Copia o código-fonte do backend
+COPY src ./src
+COPY public ./public
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+EXPOSE 3000
+
+CMD ["node", "src/server.js"]
+

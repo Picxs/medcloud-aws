@@ -106,7 +106,7 @@ $('#form-exame').addEventListener('submit', async (ev) => {
   const btn = $('#btn-enviar-exame'); btn.disabled = true; btn.textContent = 'Enviando…';
   try {
     await api('/api/exames', { method: 'POST', body: new FormData(ev.target) });
-    toast('Exame enviado — processando no worker (SQS)'); ev.target.reset(); $('#drop-text').textContent = 'Arraste a imagem do exame ou clique para selecionar'; render();
+    toast('Exame salvo no MinIO — enfileirado no RabbitMQ para o Worker'); ev.target.reset(); $('#drop-text').textContent = 'Arraste a imagem do exame ou clique para selecionar'; render();
   } catch (e) { toast(e.message, true); }
   btn.disabled = false; btn.textContent = 'Enviar para processamento';
 });
@@ -143,7 +143,7 @@ async function openExam(id) {
   $('#modal').showModal();
 }
 
-const showInstance = () => api('/api/health').then((h) => ($('#instance').textContent = `instância: ${h.instance}`)).catch(() => {});
+const showInstance = () => api('/api/health').then((h) => ($('#instance').textContent = `container: ${h.instance} · RabbitMQ: ${h.rabbitmq || 'ok'}`)).catch(() => {});
 showInstance(); setInterval(showInstance, 5000);
 $('#btn-stress').onclick = async () => {
   try { const r = await api('/api/stress?s=180'); toast(r.alreadyRunning ? `Carga já ativa em ${r.instance}` : `CPU saturada em ${r.instance} por ${r.seconds}s`); }
