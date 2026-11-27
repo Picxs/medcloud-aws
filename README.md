@@ -117,33 +117,6 @@ Todos os 8 containers estarão ativos na rede `medcloud-net`:
    - Na aplicação web, clique na aba **Auditoria**.
    - Veja todos os registros `CREATE`, `READ`, `UPDATE`, `DELETE` e `PROCESS` (gerado pelo Worker com a taxa de redução de tamanho da imagem) vindos diretamente da tabela `medcloud-audit` do **DynamoDB**.
 
----
-
-## 6. Pontuação Extra: Implantação no Kubernetes (K8s)
-
-Os manifestos na pasta `k8s/` configuram todos os serviços utilizando:
-- **`Secret` (`medcloud-secrets`)** e **`ConfigMap` (`medcloud-config`)** para gerenciamento seguro de credenciais e variáveis de ambiente (`k8s/01-secrets-configmap.yaml`).
-- **`Deployment`** e **`Service` (`ClusterIP` e `NodePort`)** para banco relacional, MinIO, RabbitMQ, Redis, DynamoDB, Backend, Worker e Frontend (`k8s/02-infra.yaml` e `k8s/03-app.yaml`).
-
-### Comandos para executar no Kubernetes (Minikube / Kind / Docker Desktop K8s)
-```bash
-# 1. Construir as imagens locais
-docker compose build
-
-# (Se estiver usando Minikube, carregue as imagens para dentro do cluster)
-# minikube image load medcloud-backend:latest medcloud-worker:latest medcloud-frontend:latest
-
-# 2. Aplicar Secrets, ConfigMap, Deployments e Services
-kubectl apply -f k8s/
-
-# 3. Verificar os Pods e Services
-kubectl get pods
-kubectl get svc
-```
-O Frontend ficará acessível via `NodePort` na porta **`30080`** (`http://localhost:30080`) e o MinIO na porta **`30900`/`30901`**.
-
----
-
 ## 7. Comandos Úteis
 
 ```bash
