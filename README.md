@@ -33,7 +33,6 @@ flowchart LR
 | **Imagem do Worker** | Node.js 20 Alpine + Sharp + AMQP | `Dockerfile.worker` |
 | **Imagem do Frontend** | Nginx 1.27 Alpine + Proxy Reverso `/api/` | `Dockerfile.frontend` + `nginx.conf` |
 | **Orquestração** | Docker Compose com rede `medcloud-net` e `healthcheck` | `docker-compose.yml` |
-| **Extra: Kubernetes (+1,0 pt)** | `Deployment`, `Service` (`ClusterIP` e `NodePort`), `Secret`, `ConfigMap` | Pasta `k8s/` |
 
 ---
 
